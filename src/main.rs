@@ -115,6 +115,9 @@ pub mod bitboard {
 }
 
 pub mod tictactoe {
+    extern crate colored;
+
+    use colored::Colorize;
     use crate::bitboard::BitBoard;
     use std::fmt;
 
@@ -199,31 +202,31 @@ pub mod tictactoe {
 
             let piece_placement = |bit| {
                 if ((self.x_board >> bit) & 1) != EMPTY_BOARD {
-                    " X ".to_string()
+                    " X ".bright_red()
                 } else if ((self.o_board >> bit) & 1) != EMPTY_BOARD {
-                    " O ".to_string()
+                    " O ".bright_blue()
                 } else {
-                    format!(" {} ", bit + 1)
+                    format!(" {} ", bit + 1).bold().on_cyan()
                 }
             };
 
             output.push(
                 (0..3)
-                    .map(|bit| piece_placement(bit))
+                    .map(|bit| piece_placement(bit).to_string())
                     .collect::<Vec<String>>()
                     .join("|"),
             );
 
             output.push(
                 (3..6)
-                    .map(|bit| piece_placement(bit))
+                    .map(|bit| piece_placement(bit).to_string())
                     .collect::<Vec<String>>()
                     .join("|"),
             );
 
             output.push(
                 (6..9)
-                    .map(|bit| piece_placement(bit))
+                    .map(|bit| piece_placement(bit).to_string())
                     .collect::<Vec<String>>()
                     .join("|"),
             );
@@ -353,9 +356,15 @@ pub mod tictactoe {
 use crate::tictactoe::GameState;
 use std::io::{self, Write};
 
+//https://stackoverflow.com/questions/34837011/how-to-clear-the-terminal-screen-in-rust-after-a-new-line-is-printed
+fn clear_screen() {
+    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+}
+
 fn main() {
     let mut game = GameState::new();
     while !game.is_over() {
+        clear_screen();
         println!("\n{}\n\n", game);
         print!("Place {:?} >> ", game.get_current_player());
         let _ = io::stdout().flush();
@@ -368,5 +377,7 @@ fn main() {
         game = game.make_play(placement).unwrap_or(game);
     }
 
+
+    clear_screen();
     println!("\n{}", game);
 }
