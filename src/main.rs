@@ -98,10 +98,6 @@ pub mod bitboard {
             BitBoard { board: 0 }
         }
 
-        pub fn get_value(&self) -> usize {
-            self.board
-        }
-
         pub const fn with_bits(board: usize) -> BitBoard {
             BitBoard { board }
         }
@@ -152,7 +148,7 @@ pub mod tictactoe {
         }
 
         pub fn already_played(&self, placement: usize) -> bool {
-            ((self.x_board | self.o_board) & (1 << placement)).get_value() > 0
+            (self.x_board | self.o_board) & (1 << placement) != EMPTY_BOARD
         }
 
         pub fn place_on_x_board(&self, placement: usize) -> Option<TicTacToeBoard> {
