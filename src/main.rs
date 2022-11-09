@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 pub mod bitboard {
     use std::fmt;
     use std::ops::{BitAnd, BitOr, BitXor, Shl, Shr};
@@ -268,6 +266,12 @@ pub mod tictactoe {
                 "{}\nState: {}\nCurrent Player: {:?}",
                 self.board, status, self.current_player
             )
+        }
+    }
+
+    impl Default for GameState {
+        fn default() -> Self {
+            Self::new()
         }
     }
 
