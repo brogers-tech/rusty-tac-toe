@@ -243,15 +243,21 @@ pub mod tictactoe {
     impl fmt::Display for GameState {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             let status = match self.status() {
-                GameStatus::XWon => "X Wins!!",
-                GameStatus::OWon => "O Wins!!",
-                GameStatus::Draw => "Draw!",
-                GameStatus::StillGoing => "Still playing.",
+                GameStatus::XWon => "X Wins!!".green(),
+                GameStatus::OWon => "O Wins!!".green(),
+                GameStatus::Draw => "Draw!".purple(),
+                GameStatus::StillGoing => "Still playing.".bold(),
             };
+
+            let player = match self.current_player {
+                PlayerSign::X => "X",
+                PlayerSign::O => "O",
+            };
+
             write!(
                 f,
-                "{}\nState: {}\nCurrent Player: {:?}",
-                self.board, status, self.current_player
+                "{}\nState: {}\nCurrent Player: {}",
+                self.board, status, if !self.is_over() { player } else { "--" }
             )
         }
     }
