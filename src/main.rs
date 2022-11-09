@@ -1,4 +1,4 @@
-use std::ops::{BitAnd,BitOr,BitXor};
+use std::ops::{BitAnd,BitOr,BitXor,Shr,Shl};
 use std::fmt;
 
 #[derive(Debug,Clone,Copy)]
@@ -51,6 +51,22 @@ impl BitXor<usize> for BitBoard {
 
     fn bitxor(self, rhs: usize) -> Self::Output {
         Self { board: self.board ^ rhs }
+    }
+}
+
+impl Shl<usize> for BitBoard {
+    type Output = BitBoard;
+
+    fn shl(self, rhs: usize) -> Self::Output {
+        BitBoard { board: self.board << rhs }
+    }
+}
+
+impl Shr<usize> for BitBoard {
+    type Output = BitBoard;
+
+    fn shr(self, rhs: usize) -> Self::Output {
+        BitBoard { board: self.board >> rhs }
     }
 }
 
