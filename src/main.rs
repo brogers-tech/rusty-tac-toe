@@ -2,15 +2,9 @@ pub mod bitboard {
     use std::fmt;
     use std::ops::{BitAnd, BitOr, BitXor, Shl, Shr};
 
-    #[derive(Debug, Clone, Copy, PartialEq)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct BitBoard {
         board: usize,
-    }
-
-    impl Default for BitBoard {
-        fn default() -> Self {
-            Self::new()
-        }
     }
 
     impl BitAnd for BitBoard {
@@ -135,16 +129,10 @@ pub mod tictactoe {
         BitBoard::with_bits(0b001010100), //right-left diagonal
     ];
 
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Default, Debug, Clone, Copy)]
     pub struct TicTacToeBoard {
         x_board: BitBoard,
         o_board: BitBoard,
-    }
-
-    impl Default for TicTacToeBoard {
-        fn default() -> Self {
-            Self::new()
-        }
     }
 
     impl TicTacToeBoard {
@@ -362,7 +350,7 @@ fn clear_screen() {
 }
 
 fn main() {
-    let mut game = GameState::new();
+    let mut game = GameState::default();
     while !game.is_over() {
         clear_screen();
         println!("\n{}\n\n", game);
