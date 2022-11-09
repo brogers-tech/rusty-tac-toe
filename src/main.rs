@@ -257,7 +257,17 @@ pub mod tictactoe {
 
     impl fmt::Display for GameState {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "{}\nState: {:?}\nCurrent Player: {:?}", self.board, self.status(), self.current_player)
+            let status = match self.status() {
+                GameStatus::XWon => "X Wins!!",
+                GameStatus::OWon => "O Wins!!",
+                GameStatus::Draw => "Draw!",
+                GameStatus::StillGoing => "Still playing.",
+            };
+            write!(
+                f,
+                "{}\nState: {}\nCurrent Player: {:?}",
+                self.board, status, self.current_player
+            )
         }
     }
 
@@ -268,6 +278,10 @@ pub mod tictactoe {
                 current_player: PlayerSign::X,
                 status: GameStatus::StillGoing,
             }
+        }
+
+        pub fn is_over(&self) -> bool {
+            self.status() != GameStatus::StillGoing
         }
 
         pub fn status(&self) -> GameStatus {
@@ -306,8 +320,8 @@ pub mod tictactoe {
                 return None;
             }
             let tttboard = match self.current_player {
-                PlayerSign::X => self.board.place_on_x_board(placement-1),
-                PlayerSign::O => self.board.place_on_o_board(placement-1),
+                PlayerSign::X => self.board.place_on_x_board(placement - 1),
+                PlayerSign::O => self.board.place_on_o_board(placement - 1),
             };
 
             let tttboard = match tttboard {
@@ -333,14 +347,22 @@ pub mod tictactoe {
 }
 
 use crate::tictactoe::GameState;
+use std::io::{self, Write};
 
 fn main() {
     let mut game = GameState::new();
-    game = game.make_play(1).unwrap();
-    game = game.make_play(2).unwrap();
-    game = game.make_play(5).unwrap();
-    game = game.make_play(3).unwrap();
-    game = game.make_play(9).unwrap();
-    game = game.make_play(6).unwrap_or(game);
-    println!("{}", game);
+    while !game.is_over() {
+        println!("\n{}\n\n", game);
+        print!("Place {:?} >> ", game.get_current_player());
+        let _ = io::stdout().flush();
+
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).unwrap();
+
+        let placement = buffer.trim().parse::<usize>().unwrap_or(10);
+
+        game = game.make_play(placement).unwrap_or(game);
+    }
+
+    println!("\n{}", game);
 }
