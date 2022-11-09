@@ -107,8 +107,8 @@ pub mod bitboard {
 pub mod tictactoe {
     extern crate colored;
 
-    use colored::Colorize;
     use crate::bitboard::BitBoard;
+    use colored::Colorize;
     use std::fmt;
 
     const FILLED_BOARD: BitBoard = BitBoard::with_bits(0b111111111);
@@ -243,9 +243,9 @@ pub mod tictactoe {
     impl fmt::Display for GameState {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             let status = match self.status() {
-                GameStatus::XWon => "X Wins!!".green(),
-                GameStatus::OWon => "O Wins!!".green(),
-                GameStatus::Draw => "Draw!".purple(),
+                GameStatus::XWon => "X Wins!!".green().blink(),
+                GameStatus::OWon => "O Wins!!".green().blink(),
+                GameStatus::Draw => "Draw!".purple().italic(),
                 GameStatus::StillGoing => "Still playing.".bold(),
             };
 
@@ -257,7 +257,9 @@ pub mod tictactoe {
             write!(
                 f,
                 "{}\nState: {}\nCurrent Player: {}",
-                self.board, status, if !self.is_over() { player } else { "--" }
+                self.board,
+                status,
+                if !self.is_over() { player } else { "--" }
             )
         }
     }
@@ -366,7 +368,6 @@ fn main() {
 
         game = game.make_play(placement).unwrap_or(game);
     }
-
 
     clear_screen();
     println!("\n{}", game);
