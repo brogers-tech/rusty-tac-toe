@@ -315,9 +315,11 @@ pub mod tictactoe {
             if self.status() != GameStatus::StillGoing {
                 return None;
             }
+            
             if placement > 9 {
                 return None;
             }
+            
             let tttboard = match self.current_player {
                 PlayerSign::X => self.board.place_on_x_board(placement - 1),
                 PlayerSign::O => self.board.place_on_o_board(placement - 1),
@@ -355,8 +357,11 @@ fn clear_screen() {
 
 fn main() {
     let mut game = GameState::default();
+    
     while !game.is_over() {
+        
         clear_screen();
+        
         println!("\n{}\n\n", game);
         print!("Place {:?} >> ", game.get_current_player());
         let _ = io::stdout().flush();
