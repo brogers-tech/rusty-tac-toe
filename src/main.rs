@@ -113,7 +113,7 @@ pub mod tictactoe {
 
     use crate::bitboard::BitBoard;
     use colored::Colorize;
-    use std::{fmt, thread::current};
+    use std::fmt;
 
     const FILLED_BOARD: BitBoard = BitBoard::with_bits(0b111111111);
     const EMPTY_BOARD: BitBoard = BitBoard::with_bits(0);
@@ -364,41 +364,68 @@ pub mod tictactoe {
     }
 }
 
-struct Move<T>(T);
+pub mod Game {
 
-trait Strategy{
-    type Output;
+    #[derive(Copy, Clone, Debug)]
+    pub struct Action<T>(T);
 
-    fn decide_move<G>(&self, game_state: &G) -> Move<Self::Output>;
-}
-
-struct TicTacToePlayer<S: Strategy> {
-    strategy: S
-}
-
-impl <S: Strategy> TicTacToePlayer<S> {
-    fn new(strategy: S) -> TicTacToePlayer<S> {
-        TicTacToePlayer { strategy }
+    #[derive(Debug)]    
+    pub struct Player<S: Strategy> {
+        strategy: S,
     }
 
-    fn make_move(&self, game_state: &GameState) -> Move<S::Output> {
-        self.strategy.decide_move(game_state)
+    #[derive(Debug)]
+    pub enum Status<P: Playing> {
+        Win(P),
+        Draw,
+        OnGoing,
     }
-}
 
-struct TTTInputStrategy;
+    impl <T> Action <T> {
+        pub fn new(action: T) -> Action<T> {
+            Action(action)
+        }
 
-impl Strategy for TTTInputStrategy {
-    type Output = usize;
-
-    fn decide_move<G>(&self, _ : &G) -> Move<Self::Output> {
-        let mut buffer = String::new();
-        io::stdin().read_line(&mut buffer).unwrap();
-
-        let placement = buffer.trim().parse::<usize>().unwrap_or(10);
-        
-        Move(placement)
+        pub fn get(self) -> T {
+            self.0
+        }
     }
+
+    impl <S: Strategy> Player<S> {
+        fn new(strategy: S) -> Player<S> {
+            Player { strategy }
+        }
+    
+        fn make_move<G: GameState>(&self, game_state: &G) -> Action<S::Output> {
+            self.strategy.decide_action(game_state)
+        }
+    }
+
+    impl <S: Strategy> Playing for Player<S> {}
+
+    //Partially inspired by 
+    //Introduction to Artificial Intelligence
+    //A Modern Approach
+    //https://github.com/aimacode/aima-java/blob/AIMA3e/aima-core/src/main/java/aima/core/search/adversarial/Game.java
+    pub trait GameState{
+        type Output;
+
+        fn get_current_state(&self) -> Self::Output;
+        fn get_players<P: Playing>(&self) -> Vec<P>;
+        fn is_over(&self) -> bool;
+        fn get_actions<T>(&self) -> Vec<Action<T>>;
+        fn do_action<T>(&self, action: Action<T>) -> Option<Self::Output>;
+        fn get_game_status<P: Playing>(&self) -> Status<P>;
+    }
+
+    pub trait Playing{}
+
+    pub trait Strategy{
+        type Output;
+    
+        fn decide_action<G>(&self, game_state: &G) -> Action<Self::Output>;
+    }
+
 }
 
 
