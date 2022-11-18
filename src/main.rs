@@ -364,9 +364,43 @@ pub mod tictactoe {
     }
 }
 
-struct Move<T>{
-    choice: T
+struct Move<T>(T);
+
+trait Strategy{
+    type Output;
+
+    fn decide_move<G>(&self, game_state: &G) -> Move<Self::Output>;
 }
+
+struct TicTacToePlayer<S: Strategy> {
+    strategy: S
+}
+
+impl <S: Strategy> TicTacToePlayer<S> {
+    fn new(strategy: S) -> TicTacToePlayer<S> {
+        TicTacToePlayer { strategy }
+    }
+
+    fn make_move(&self, game_state: &GameState) -> Move<S::Output> {
+        self.strategy.decide_move(game_state)
+    }
+}
+
+struct TTTInputStrategy;
+
+impl Strategy for TTTInputStrategy {
+    type Output = usize;
+
+    fn decide_move<G>(&self, _ : &G) -> Move<Self::Output> {
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).unwrap();
+
+        let placement = buffer.trim().parse::<usize>().unwrap_or(10);
+        
+        Move(placement)
+    }
+}
+
 
 use crate::tictactoe::GameState;
 use std::io::{self, Write};
@@ -378,7 +412,7 @@ fn clear_screen() {
 
 fn main() {
     let mut game = GameState::default();
-    
+
     while !game.is_over() {
         
         clear_screen();
