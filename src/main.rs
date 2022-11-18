@@ -101,6 +101,10 @@ pub mod bitboard {
         pub const fn with_bits(board: usize) -> BitBoard {
             BitBoard { board }
         }
+
+        pub fn get_bit(&self, bit: usize) -> usize {
+            (self.board >> bit) & 1
+        }
     }
 }
 
@@ -109,7 +113,7 @@ pub mod tictactoe {
 
     use crate::bitboard::BitBoard;
     use colored::Colorize;
-    use std::fmt;
+    use std::{fmt, thread::current};
 
     const FILLED_BOARD: BitBoard = BitBoard::with_bits(0b111111111);
     const EMPTY_BOARD: BitBoard = BitBoard::with_bits(0);
@@ -311,6 +315,19 @@ pub mod tictactoe {
             self.current_player
         }
 
+        pub fn get_moves(&self) -> Vec<usize> {
+            let current_places = self.board.x_board | self.board.o_board;
+            let mut moves = Vec::new();
+            for b in 0..9 {
+                let bit = current_places.get_bit(b);
+                if bit == 0 {
+                    moves.push(b);
+                }
+            }
+
+            moves
+        }
+
         pub fn make_play(&self, placement: usize) -> Option<GameState> {
             if self.status() != GameStatus::StillGoing {
                 return None;
@@ -347,6 +364,10 @@ pub mod tictactoe {
     }
 }
 
+struct Move<T>{
+    choice: T
+}
+
 use crate::tictactoe::GameState;
 use std::io::{self, Write};
 
@@ -362,7 +383,10 @@ fn main() {
         
         clear_screen();
         
+        let player_moves = game.get_moves().iter().map(|m| m + 1).collect::<Vec<usize>>();
+
         println!("\n{}\n\n", game);
+        println!("Possible choices: {:?}", player_moves);
         print!("Place {:?} >> ", game.get_current_player());
         let _ = io::stdout().flush();
 
