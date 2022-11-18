@@ -108,12 +108,81 @@ pub mod bitboard {
     }
 }
 
+
+
+pub mod Game {
+
+    #[derive(Copy, Clone, Debug)]
+    pub struct Action<T>(T);
+
+    #[derive(Debug)]    
+    pub struct Player<S: Strategy> {
+        strategy: S,
+    }
+
+    #[derive(Debug)]
+    pub enum Status<P: Playing> {
+        Win(P),
+        Draw,
+        OnGoing,
+    }
+
+    impl <T> Action <T> {
+        pub fn new(action: T) -> Action<T> {
+            Action(action)
+        }
+
+        pub fn get(self) -> T {
+            self.0
+        }
+    }
+
+    impl <S: Strategy> Player<S> {
+        fn new(strategy: S) -> Player<S> {
+            Player { strategy }
+        }
+    
+        fn make_move<G: GameState>(&self, game_state: &G) -> Action<S::Output> {
+            self.strategy.decide_action(game_state)
+        }
+    }
+
+    impl <S: Strategy> Playing for Player<S> {}
+
+    //Partially inspired by 
+    //Introduction to Artificial Intelligence
+    //A Modern Approach
+    //https://github.com/aimacode/aima-java/blob/AIMA3e/aima-core/src/main/java/aima/core/search/adversarial/Game.java
+    pub trait GameState{
+        type State;
+
+        fn get_current_state(&self) -> Self::State;
+        fn get_players<P: Playing>(&self) -> Vec<P>;
+        fn is_over(&self) -> bool;
+        fn get_actions<T>(&self) -> Vec<Action<T>>;
+        fn do_action<T>(&self, action: Action<T>) -> Option<Self::State>;
+        fn get_game_status<P: Playing>(&self) -> Status<P>;
+        fn get_current_player<P: Playing>(&self) -> Option<P>;
+    }
+
+    pub trait Playing{}
+
+    pub trait Strategy{
+        type Output;
+    
+        fn decide_action<G>(&self, game_state: &G) -> Action<Self::Output>;
+    }
+
+}
+
 pub mod tictactoe {
     extern crate colored;
 
     use crate::bitboard::BitBoard;
+    use crate::Game::GameState;
     use colored::Colorize;
     use std::fmt;
+
 
     const FILLED_BOARD: BitBoard = BitBoard::with_bits(0b111111111);
     const EMPTY_BOARD: BitBoard = BitBoard::with_bits(0);
@@ -238,15 +307,15 @@ pub mod tictactoe {
     }
 
     #[derive(Debug, Clone, Copy)]
-    pub struct GameState {
+    pub struct TicTacToeGame {
         board: TicTacToeBoard,
         current_player: PlayerSign,
         status: GameStatus,
     }
 
-    impl fmt::Display for GameState {
+    impl fmt::Display for TicTacToeGame {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let status = match self.status() {
+            let status = match self.current_status() {
                 GameStatus::XWon => "X Wins!!".green().blink(),
                 GameStatus::OWon => "O Wins!!".green().blink(),
                 GameStatus::Draw => "Draw!".purple().italic(),
@@ -268,15 +337,15 @@ pub mod tictactoe {
         }
     }
 
-    impl Default for GameState {
+    impl Default for TicTacToeGame {
         fn default() -> Self {
             Self::new()
         }
     }
 
-    impl GameState {
-        pub fn new() -> GameState {
-            GameState {
+    impl TicTacToeGame {
+        pub fn new() -> TicTacToeGame {
+            TicTacToeGame {
                 board: TicTacToeBoard::default(),
                 current_player: PlayerSign::X,
                 status: GameStatus::StillGoing,
@@ -284,10 +353,10 @@ pub mod tictactoe {
         }
 
         pub fn is_over(&self) -> bool {
-            self.status() != GameStatus::StillGoing
+            self.current_status() != GameStatus::StillGoing
         }
 
-        pub fn status(&self) -> GameStatus {
+        pub fn current_status(&self) -> GameStatus {
             self.status
         }
 
@@ -328,8 +397,8 @@ pub mod tictactoe {
             moves
         }
 
-        pub fn make_play(&self, placement: usize) -> Option<GameState> {
-            if self.status() != GameStatus::StillGoing {
+        pub fn make_play(&self, placement: usize) -> Option<TicTacToeGame> {
+            if self.get_status() != GameStatus::StillGoing {
                 return None;
             }
             
@@ -352,7 +421,7 @@ pub mod tictactoe {
                 PlayerSign::O => PlayerSign::X,
             };
 
-            let mut game_state = GameState {
+            let mut game_state = TicTacToeGame {
                 board: tttboard,
                 current_player: next_player,
                 status: GameStatus::StillGoing,
@@ -364,72 +433,7 @@ pub mod tictactoe {
     }
 }
 
-pub mod Game {
-
-    #[derive(Copy, Clone, Debug)]
-    pub struct Action<T>(T);
-
-    #[derive(Debug)]    
-    pub struct Player<S: Strategy> {
-        strategy: S,
-    }
-
-    #[derive(Debug)]
-    pub enum Status<P: Playing> {
-        Win(P),
-        Draw,
-        OnGoing,
-    }
-
-    impl <T> Action <T> {
-        pub fn new(action: T) -> Action<T> {
-            Action(action)
-        }
-
-        pub fn get(self) -> T {
-            self.0
-        }
-    }
-
-    impl <S: Strategy> Player<S> {
-        fn new(strategy: S) -> Player<S> {
-            Player { strategy }
-        }
-    
-        fn make_move<G: GameState>(&self, game_state: &G) -> Action<S::Output> {
-            self.strategy.decide_action(game_state)
-        }
-    }
-
-    impl <S: Strategy> Playing for Player<S> {}
-
-    //Partially inspired by 
-    //Introduction to Artificial Intelligence
-    //A Modern Approach
-    //https://github.com/aimacode/aima-java/blob/AIMA3e/aima-core/src/main/java/aima/core/search/adversarial/Game.java
-    pub trait GameState{
-        type Output;
-
-        fn get_current_state(&self) -> Self::Output;
-        fn get_players<P: Playing>(&self) -> Vec<P>;
-        fn is_over(&self) -> bool;
-        fn get_actions<T>(&self) -> Vec<Action<T>>;
-        fn do_action<T>(&self, action: Action<T>) -> Option<Self::Output>;
-        fn get_game_status<P: Playing>(&self) -> Status<P>;
-    }
-
-    pub trait Playing{}
-
-    pub trait Strategy{
-        type Output;
-    
-        fn decide_action<G>(&self, game_state: &G) -> Action<Self::Output>;
-    }
-
-}
-
-
-use crate::tictactoe::GameState;
+use crate::tictactoe::TicTacToeGame;
 use std::io::{self, Write};
 
 //https://stackoverflow.com/questions/34837011/how-to-clear-the-terminal-screen-in-rust-after-a-new-line-is-printed
@@ -438,7 +442,7 @@ fn clear_screen() {
 }
 
 fn main() {
-    let mut game = GameState::default();
+    let mut game = TicTacToeGame::default();
 
     while !game.is_over() {
         
