@@ -187,6 +187,10 @@ pub mod tictactoe {
     const FILLED_BOARD: BitBoard = BitBoard::with_bits(0b111111111);
     const EMPTY_BOARD: BitBoard = BitBoard::with_bits(0);
 
+    const H_EDGE: &str = "\u{2500}";
+    const V_EDGE:  &str = "\u{2502}";
+    const CONNECTOR:  &str = "\u{253C}";
+
     const WON_BOARDS: &[BitBoard; 8] = &[
         BitBoard::with_bits(0b111000000), //top horizontal
         BitBoard::with_bits(0b000111000), //mid horizontal
@@ -271,24 +275,26 @@ pub mod tictactoe {
                 (0..3)
                     .map(|bit| piece_placement(bit).to_string())
                     .collect::<Vec<String>>()
-                    .join("|"),
+                    .join(V_EDGE),
             );
 
             output.push(
                 (3..6)
                     .map(|bit| piece_placement(bit).to_string())
                     .collect::<Vec<String>>()
-                    .join("|"),
+                    .join(V_EDGE),
             );
 
             output.push(
                 (6..9)
                     .map(|bit| piece_placement(bit).to_string())
                     .collect::<Vec<String>>()
-                    .join("|"),
+                    .join(V_EDGE),
             );
 
-            write!(f, "{}", output.join("\n---+---+---\n"))
+            let wall = H_EDGE.repeat(3);
+            let divider = format!("\n{div}{con}{div}{con}{div}\n", div=wall, con=CONNECTOR);
+            write!(f, "{}", output.join(&divider))
         }
     }
 
